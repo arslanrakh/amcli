@@ -7,8 +7,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/arslanr-com/amcli/actions/workflows/ci.yml"><img src="https://github.com/arslanr-com/amcli/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/arslanr-com/amcli/releases/latest"><img src="https://img.shields.io/github/v/release/arslanr-com/amcli?label=release" alt="Latest release"></a>
+  <a href="https://github.com/arslanrakh/amcli/actions/workflows/ci.yml"><img src="https://github.com/arslanrakh/amcli/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/arslanrakh/amcli/releases/latest"><img src="https://img.shields.io/github/v/release/arslanrakh/amcli?label=release" alt="Latest release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue.svg" alt="Apache-2.0"></a>
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/agent%20skill-included-8A2BE2" alt="Agent skill included"></a>
 </p>
@@ -32,6 +32,13 @@ http://127.0.0.1:52341/
   <br>
   <sub>The agent works on the model; <code>amcli web</code> shows you what it did — every view, every element, the graph between them — while it keeps working.</sub>
 </p>
+
+## Who it is for
+
+Architects who keep an ArchiMate model in the `.archimate` file that
+[Archi](https://www.archimatetool.com) saves. amcli queries, edits and checks
+the model from the shell, in CI or through a coding agent. Archi stays the
+editor for people and does not need to be open.
 
 ## Why
 
@@ -91,7 +98,7 @@ http://127.0.0.1:52341/
   unchanged file. `amcli export views` goes the other way — it derives the
   batch that rebuilds every view from the model, so a drawing gets a
   declarative form to review without a second source of truth to keep in step.
-  Export, apply, and the file is byte-identical.
+  Export, apply with the same seed, and the file is byte-identical.
 - **Views drawn to be read.** Layout works from the graph alone, tries several
   layerings and keeps the least tangled: every edge one straight line, kept off
   the boxes, boxes sized to their labels, and — wherever the graph allows it —
@@ -107,26 +114,29 @@ http://127.0.0.1:52341/
 **For an agent** — the skill installs and updates the binary itself:
 
 ```bash
-npx skills add arslanr-com/amcli
+npx skills add arslanrakh/amcli
 ```
 
 **Just the binary** — checked against the release's SHA256SUMS before it is
-unpacked, with no flag that skips that, into `~/.local/bin`, no `sudo`, no
-shell config edited:
+unpacked, with no flag that skips that, into `~/.local/bin`
+(`%LOCALAPPDATA%\Programs\amcli` on Windows), no `sudo`, no shell config
+edited. Stdout carries the installed binary's path; `AMCLI_VERSION=vX.Y.Z`
+pins a release and `AMCLI_INSTALL_DIR` picks the directory (`-Version` and
+`-InstallDir` in PowerShell):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/arslanr-com/amcli/main/skills/amcli/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/arslanrakh/amcli/main/skills/amcli/scripts/install.sh | sh
 ```
 
 ```powershell
-irm https://raw.githubusercontent.com/arslanr-com/amcli/main/skills/amcli/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/arslanrakh/amcli/main/skills/amcli/scripts/install.ps1 | iex
 ```
 
 **From source** (Rust 1.90+; the only route for platforms without a prebuilt
 binary — the installers fall back to it on their own):
 
 ```bash
-cargo install --git https://github.com/arslanr-com/amcli --locked amcli-cli
+cargo install --git https://github.com/arslanrakh/amcli --locked amcli-cli
 ```
 
 Add `--tag vX.Y.Z` to build a release rather than the branch, which is what
@@ -157,9 +167,10 @@ script.
 
 If you installed binary-first, `amcli skill install` writes the skill the
 binary carries — re-run it after upgrading the binary, and pass `--force` to
-overwrite a copy you have edited. It refuses outright when `npx skills` owns
-the directory, because that install has its own lock file and would overwrite
-the change on its next update; `npx skills update amcli` is the way in there.
+overwrite a copy you have edited. Without `--force` it also refuses when
+`npx skills` owns the directory, because that install has its own lock file and
+would overwrite the change on its next update; `npx skills update amcli` is the
+way in there.
 
 One thing worth knowing when the two disagree: the skill ships from the default
 branch and the binary from the newest tag, so the skill is normally the *newer*
@@ -167,7 +178,32 @@ of the two. Never "fix" that by reinstalling the skill from an older binary —
 it would talk you down a version. `amcli` reconciles it itself, and says so
 when a command it is asked for does not exist yet.
 
+## Quick start
+
+amcli works on one `.archimate` file: the one named by `-m`, else
+`$AMCLI_MODEL`, else the nearest `*.archimate` found walking up from the
+current directory. In a repository with a single model the flag can go.
+
+No model yet? `amcli init` writes an empty one with the folders Archi expects:
+
+```bash
+amcli init "Payments"                         # writes payments.archimate
+amcli element add ApplicationComponent "Payment API"
+amcli element add ApplicationService "Payment Service"
+amcli relation add Realization "Payment API" "Payment Service"
+amcli view auto "Overview" --from "Payment API"
+amcli view render "Overview" -o overview.svg
+amcli web                                     # open it in a browser
+```
+
+Records go to stdout, tab-separated; the column header and any notes go to
+stderr, and `-q` drops them. `-F json` or `-F jsonl` gives JSON instead. The
+exit code says what happened: `0` ok, `2` usage, `3` not found, `4` ambiguous,
+`5` invalid, `6` conflict, `7` I/O, `8` unsupported.
+
 ## A tour
+
+Swap in names from your model:
 
 ```bash
 amcli stats                                   # how big, and of what
@@ -184,6 +220,7 @@ amcli element  delete "Refund Service" -y     # cascades, and says to what
 amcli apply batch.jsonl                       # many edits, one write, all or nothing
 amcli validate                                # rules, with a `fix` per finding
 amcli view auto "Refunds" --from "Refund Service" -n 2
+amcli folder add /Views Payments              # a folder has to exist before anything is filed in it
 amcli view move "Refunds" -f /Views/Payments  # file it; the id does not change
 amcli view add "Refunds" "Fraud Rules" --into "Fraud Check"   # nested, as Archi draws containment: no line
 amcli view group "Refunds" "Card rails"       # a titled box; view note puts free text on the canvas
@@ -206,20 +243,38 @@ bare verbs, writes are noun-verb, `--dry-run` and `--count` never write.
 ## Development
 
 ```bash
-cargo test           # byte-identity over real Archi files, property tests, layout sweep
-cargo xtask verify   # generated tables still match the vendored Archi assets
+cargo build --release                       # target/release/amcli
+cargo test                                  # byte-identity over real Archi files, property tests, layout sweep
+cargo xtask verify                          # generated tables still match the vendored Archi assets
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings   # CI runs all four checks
 ```
 
 `tests/corpus/` is real Archi output; the identity test asserts that parsing and
 writing every file is a byte-for-byte no-op. `assets/archi/` is vendored from
 [archimatetool/archi](https://github.com/archimatetool/archi) (MIT) and turned
 into the type tables and relationship matrix by `cargo xtask codegen`.
+[AGENTS.md](AGENTS.md) has the layout of the workspace and the rules a change
+has to keep; coding agents read it, and so should a person sending a patch.
 
 ## Status
 
 Read, write, validate, views, SVG and PNG, and the web viewer all work and are
 tested against real Archi files. A `.archimate` file is read whether it is
-plain XML or the ZIP an embedded image makes of it.
+plain XML or the ZIP an embedded image makes of it. Releases are still 0.x.
+
+Limits worth knowing:
+
+- amcli reads and writes `.archimate` files only. A coArchi repository (one
+  XML file per concept) and the Open Group exchange format are not supported.
+- `view render` draws the geometry the model stores. Pixel identity with Archi
+  is not a goal: Archi's own export already differs from macOS to Windows
+  ([docs/layout.md](docs/layout.md)).
+- `export views` cannot rebuild references to other views or images. The
+  export counts them in a comment, so nothing goes missing without a note.
+- `amcli web` listens on 127.0.0.1 and answers only when the request's `Host`
+  is localhost on that port. To reach it over SSH or from outside a container,
+  forward the same port number and pick it with `--port`.
 
 ## Licence and trademarks
 

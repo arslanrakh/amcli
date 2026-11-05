@@ -8,7 +8,7 @@ finding near-misses.
 
 This is the record of why, and of what was done about it. The diagnosis is
 kept in full because it is the reason the constraints in
-[CLAUDE.md](../CLAUDE.md) exist: each one is a test now, and a test whose
+[AGENTS.md](../AGENTS.md) exist: each one is a test now, and a test whose
 reason has been forgotten is a test somebody deletes.
 
 Everything measured here was measured on a 145-element, 372-relationship,
