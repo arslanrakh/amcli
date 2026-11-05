@@ -15,7 +15,7 @@ members = [
 version = "0.17.4"
 edition = "2024"
 license = "Apache-2.0"
-repository = "https://github.com/arslanr-com/amcli"
+repository = "https://github.com/arslanrakh/amcli"
 rust-version = "1.90"
 
 [workspace.dependencies]
