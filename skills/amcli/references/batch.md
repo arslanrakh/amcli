@@ -238,8 +238,8 @@ that is semantically unchanged produces a whole-file diff.
 Pass the same seed on every command that writes — `init`, `apply`, `view auto` —
 or set it once in the environment:
 
-    export AMCLI_ID_SEED=monetech
-    amcli init "Monetech" -o model.archimate
+    export AMCLI_ID_SEED=acme
+    amcli init "Acme" -o model.archimate
     amcli apply 01-capabilities.jsonl
     amcli apply 02-applications.jsonl
 

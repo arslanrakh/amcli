@@ -1262,7 +1262,7 @@ fn init_creates_a_model_the_rest_of_the_tool_can_use() {
     let path = dir.path().join("new.archimate");
     let amcli = |args: &[&str]| Command::cargo_bin("amcli").unwrap().args(args).output().unwrap();
 
-    let out = amcli(&["init", "Monetech & Co", "-o", path.to_str().unwrap()]);
+    let out = amcli(&["init", "Acme & Co", "-o", path.to_str().unwrap()]);
     assert_eq!(out.status.code(), Some(0), "{}", String::from_utf8_lossy(&out.stderr));
     assert!(path.exists());
 
@@ -1286,7 +1286,7 @@ fn init_creates_a_model_the_rest_of_the_tool_can_use() {
 
     // The name survived escaping, which is why this is not a format! template.
     let out = amcli(&["-m", p, "info", "-F", "json", "-q"]);
-    assert!(String::from_utf8_lossy(&out.stdout).contains("Monetech & Co"));
+    assert!(String::from_utf8_lossy(&out.stdout).contains("Acme & Co"));
 
     // An existing file is not silently overwritten.
     assert_eq!(amcli(&["init", "Other", "-o", p]).status.code(), Some(6), "conflict");

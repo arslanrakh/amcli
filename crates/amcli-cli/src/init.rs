@@ -132,7 +132,7 @@ mod tests {
 
     #[test]
     fn a_name_becomes_a_sensible_filename() {
-        assert_eq!(slug("Monetech Architecture"), "monetech-architecture");
+        assert_eq!(slug("Acme Architecture"), "acme-architecture");
         assert_eq!(slug("Technology & Physical"), "technology-physical");
         assert_eq!(slug("  "), "model");
         assert_eq!(slug("...!!!"), "model");
